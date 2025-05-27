@@ -89,6 +89,26 @@ You’ll get:
 
 ---
 
+## ✅ License
+
+[MIT License](https://opensource.org/licenses/MIT)
+
+> Use it. Improve it. Break metadata, not your flow.
+
+---
+
+## 🔔 Optional: Sound Notification
+
+This script uses `paplay` to play a GNOME desktop notification sound when finished.  
+If you're not hearing anything at the end of the scrub, install this package:
+
+```bash
+sudo apt install libcanberra-gtk3-module
+```
+Or comment out the `paplay` line at the bottom of the script if you prefer silence. 🙂
+
+---
+
 ## 🧠 Author
 
 **Tolga Yenici**
@@ -96,3 +116,5 @@ You’ll get:
 Mechanical Engineer • GNU/Linux Enthusiast • Privacy Advocate
 
 https://github.com/tolgayenici
+
+---
