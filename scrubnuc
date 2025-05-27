@@ -1,0 +1,80 @@
+#!/bin/bash
+
+if [ "$#" -lt 1 ]; then
+    echo "Usage: scrubnuc <file1> [file2 file3 ...]"
+    exit 1
+fi
+
+log_dir="$HOME/scrubstrong_logs"
+mkdir -p "$log_dir"
+log_file="$log_dir/scrubnuc_$(date +%F).log"
+echo "---- ScrubNuc Log: $(date) ----" >> "$log_file"
+
+backup_dir="$HOME/scrubnuc_backups"
+mkdir -p "$backup_dir"
+
+for file in "$@"; do
+    if [ ! -f "$file" ]; then
+        echo "❌ File not found: $file"
+        echo "$(date +"%F %T") ❌ File not found: $file" >> "$log_file"
+        continue
+    fi
+
+    dir=$(dirname "$file")
+    base=$(basename "$file")
+    name="${base%.*}"
+    # ext="${base##*.}"
+    # tmp_cleaned="${dir}/${name}_tmpclean.${ext}"
+    # output="${dir}/${name}_fullyscrubbed.${ext}"
+    ext="${base##*.}"
+
+    # Convert .jpg to .png for consistent processing
+    if [[ "$ext" == "jpg" || "$ext" == "jpeg" || "$ext" == "JPG" || "$ext" == "JPEG" ]]; then
+        ext="png"
+        name="${name}_converted"
+        base="${name}.${ext}"
+        echo "🔁 Converting JPG to PNG for deep scrub..." >> "$log_file"
+    fi
+
+    tmp_cleaned="${dir}/${name}_tmpclean.${ext}"
+    output="${dir}/${name}_fullyscrubbed.${ext}"
+
+    echo "🔍 NUCLEAR SCRUB: $file"
+    echo "$(date +"%F %T") 🔍 NUCLEAR SCRUB: $file" >> "$log_file"
+
+    mat2 "$file" --inplace
+    if [ $? -ne 0 ]; then
+        echo "❌ mat2 failed on $file"
+        echo "$(date +"%F %T") ❌ mat2 failed on $file" >> "$log_file"
+        continue
+    fi
+
+    convert "$file" "$tmp_cleaned"
+    if [ $? -ne 0 ]; then
+        echo "❌ convert failed on $file"
+        echo "$(date +"%F %T") ❌ convert failed on $file" >> "$log_file"
+        rm -f "$tmp_cleaned"
+        continue
+    fi
+
+    pngcrush -rem allb -reduce -brute "$tmp_cleaned" "$output" > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        echo "✅ Fully scrubbed: $output"
+        echo "$(date +"%F %T") ✅ Fully scrubbed: $output" >> "$log_file"
+
+        # Move original to backup
+        mv "$file" "$backup_dir/" 2>/dev/null
+        echo "📁 Original moved to: $backup_dir/$base" >> "$log_file"
+    else
+        echo "❌ pngcrush failed on $tmp_cleaned"
+        echo "$(date +"%F %T") ❌ pngcrush failed on $tmp_cleaned" >> "$log_file"
+        rm -f "$output"
+    fi
+
+    rm -f "$tmp_cleaned"
+done
+
+echo "📝 Log saved to: $log_file"
+
+# 🔔 Play notification sound
+paplay /usr/share/sounds/freedesktop/stereo/complete.oga &> /dev/null
