@@ -5,7 +5,7 @@ if [ "$#" -lt 1 ]; then
     exit 1
 fi
 
-log_dir="$HOME/scrubstrong_logs"
+log_dir="$HOME/scrubnuc_logs"
 mkdir -p "$log_dir"
 log_file="$log_dir/scrubnuc_$(date +%F).log"
 echo "---- ScrubNuc Log: $(date) ----" >> "$log_file"
